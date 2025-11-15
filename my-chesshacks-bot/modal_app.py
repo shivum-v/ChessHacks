@@ -11,9 +11,10 @@ app = modal.App("chesshacks-bot")
 image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install("torch", "torchvision", "torchaudio")
-    .add_local_file("requirements.txt", "/requirements.txt")
+    .add_local_file("requirements.txt", "/requirements.txt", copy=True)
     .run_commands("pip install -r /requirements.txt")
     .add_local_dir("src", "/src")
+    .add_local_file("trained_model.pt", "/src/trained_model.pt")  # Include trained model
 )
 
 @app.function(
