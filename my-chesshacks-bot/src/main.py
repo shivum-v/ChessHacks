@@ -184,20 +184,9 @@ def mcts_search(board, simulations=100, c_puct=2.0):
 build_move_index()
 model = ImprovedAlphaZeroNet().to(device)
 
-# Try to load trained weights - check multiple locations
-possible_paths = [
-    Path(__file__).parent.parent / "trained_model.pt",  # Root directory
-    Path(__file__).parent / "trained_model.pt",  # src directory
-    Path("/src/trained_model.pt"),  # Modal deployment path
-]
-
-model_path = None
-for path in possible_paths:
-    if path.exists():
-        model_path = path
-        break
-
-if model_path:
+# Try to load trained weights
+model_path = Path(__file__).parent / "trained_model.pt"
+if model_path.exists():
     try:
         model.load_state_dict(torch.load(model_path, map_location=device))
         model.eval()
@@ -206,7 +195,7 @@ if model_path:
         print(f"[WARNING] Could not load model: {e}")
         print("[INFO] Using untrained model")
 else:
-    print(f"[WARNING] Model file not found in any of: {possible_paths}")
+    print(f"[WARNING] Model file not found at {model_path}")
     print("[INFO] Using untrained model - train the model first using nn.ipynb")
 
 @chess_manager.entrypoint
@@ -219,17 +208,8 @@ def chess_bot(ctx: GameContext):
         ctx.logProbabilities({})
         raise ValueError("No legal moves available")
     
-    # Use MCTS to find best move - more simulations for better play
-    # Increase simulations based on time left (more time = deeper search)
-    base_simulations = 200
-    if ctx.timeLeft > 30000:  # More than 30 seconds
-        simulations = 400
-    elif ctx.timeLeft > 10000:  # More than 10 seconds
-        simulations = 300
-    else:
-        simulations = base_simulations
-    
-    best_move, move_probs = mcts_search(ctx.board, simulations=simulations, c_puct=2.5)
+    # Use MCTS to find best move
+    best_move, move_probs = mcts_search(ctx.board, simulations=100, c_puct=2.0)
     
     if best_move is None:
         # Fallback to random if MCTS fails

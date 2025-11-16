@@ -27,3 +27,5 @@ tqdm>=4.65.0
 jupyter>=1.0.0
 ipykernel>=6.25.0
 ipywidgets>=8.1.0
+
+fastapi
